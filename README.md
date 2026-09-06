@@ -127,6 +127,22 @@ fit-to-slide CSS so images share the space the text leaves instead of overflowin
 edge. Add `--pdf` to `drive_decks.sh` to batch-export after authoring; the leaf folder is
 collapsed so each PDF lands in its parent (`<out>/CourseA/lesson.pdf`).
 
+Diagram sizing is normalized at render time by `scripts/normalize_svg.py`. mermaid emits
+`width="100%"` with no height, so inside an `<img>` a diagram has no intrinsic size and the
+browser stretches it until some CSS constraint binds — a wide `flowchart LR` stops at the slide
+width and looks compact, while a tall `flowchart TB` stops at the slide *height* and swells to
+dominate the slide. Writing an explicit size from the viewBox at `min(MAX_W/w, MAX_H/h, 1)`
+means nothing is ever upscaled past its natural size and tall diagrams are capped, so vertical
+and horizontal diagrams carry comparable visual weight. Tune with `DIAGRAM_MAX_W` (default
+1180) and `DIAGRAM_MAX_H` (default 400), in slide px of a 1280x720 slide.
+
+To retrofit decks rendered before this existed, run it over their SVGs and re-export:
+
+```bash
+python3 scripts/normalize_svg.py <deck-dir>/diagrams/*.svg
+scripts/render.sh <deck-dir>/deck.md pdf
+```
+
 Slides use the `midnight-dark` theme (`assets/theme-midnight-dark.css`) with a matching Mermaid
 theme and matplotlib style — one palette across slides, diagrams, and plots. See
 `assets/design-tokens.md`.

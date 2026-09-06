@@ -41,10 +41,11 @@ else
   printf '{"args":["--no-sandbox","--disable-setuid-sandbox"]}' > "$pconf"
 fi
 
-DECK="$deck" DIR="$dir" PCONF="$pconf" THEME="$theme" HAVE_MMDC="$have_mmdc" HAVE_PUML="$have_puml" python3 - <<'PY'
+DECK="$deck" DIR="$dir" PCONF="$pconf" THEME="$theme" NORMALIZER="$SCRIPT_DIR/normalize_svg.py" HAVE_MMDC="$have_mmdc" HAVE_PUML="$have_puml" python3 - <<'PY'
 import os, re, subprocess, sys
 
 deck = os.environ["DECK"]; ddir = os.environ["DIR"]; pconf = os.environ["PCONF"]
+normalizer = os.environ["NORMALIZER"]
 theme = os.environ.get("THEME", "")
 have_mmdc = os.environ["HAVE_MMDC"] == "1"
 have_puml = os.environ["HAVE_PUML"] == "1"
@@ -70,6 +71,17 @@ def sanitize_mermaid(body):
     body = re.sub(r'"[ \t]+([\}\]\)])', r'"\1', body)
     return body
 
+def normalize_svg(path):
+    """Cap the rendered size of a diagram so vertical ones don't dwarf horizontal ones.
+
+    Delegates to scripts/normalize_svg.py — see that file for the reasoning. Best-effort:
+    a failure here leaves a perfectly usable (just unnormalized) SVG.
+    """
+    try:
+        subprocess.run([sys.executable, normalizer, path], check=True)
+    except Exception as e:
+        print(f"render_diagrams: normalize_svg failed for {path}: {e}", file=sys.stderr)
+
 # Match fenced blocks: ```mermaid ... ``` or ```plantuml ... ```
 pat = re.compile(r"```(mermaid|plantuml)[^\n]*\n(.*?)```", re.DOTALL)
 n = 0
@@ -89,6 +101,7 @@ def render(m):
                 if theme:
                     cmd += ["-c", theme]   # Midnight-dark palette (assets/mermaid-theme.json)
                 subprocess.run(cmd, check=True, capture_output=True)
+                normalize_svg(out)
                 print(f"render_diagrams: mermaid -> diagrams/{tag}.svg", file=sys.stderr)
                 return f"![](diagrams/{tag}.svg)"   # width via injected fit CSS, not fixed
             except Exception as e:
@@ -102,6 +115,7 @@ def render(m):
         if have_puml:
             try:
                 subprocess.run(["plantuml", "-tsvg", srcfile], check=True, capture_output=True)
+                normalize_svg(out)
                 print(f"render_diagrams: plantuml -> diagrams/{tag}.svg", file=sys.stderr)
                 return f"![](diagrams/{tag}.svg)"   # width via injected fit CSS, not fixed
             except Exception as e:
