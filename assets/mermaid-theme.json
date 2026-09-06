@@ -1,0 +1,60 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "transparent",
+    "fontFamily": "Inter, 'Segoe UI', 'DejaVu Sans', sans-serif",
+    "fontSize": "16px",
+
+    "primaryColor": "#161B22",
+    "primaryBorderColor": "#3A424C",
+    "primaryTextColor": "#E6EDF3",
+    "secondaryColor": "#13202E",
+    "secondaryBorderColor": "#2C3A47",
+    "secondaryTextColor": "#E6EDF3",
+    "tertiaryColor": "#0E141B",
+    "tertiaryBorderColor": "#2A313A",
+    "tertiaryTextColor": "#E6EDF3",
+
+    "mainBkg": "#161B22",
+    "nodeBorder": "#3A424C",
+    "nodeTextColor": "#E6EDF3",
+    "textColor": "#E6EDF3",
+    "titleColor": "#E6EDF3",
+    "lineColor": "#8B949E",
+    "edgeLabelBackground": "#0B0F14",
+
+    "clusterBkg": "#0E141B",
+    "clusterBorder": "#30363D",
+
+    "labelColor": "#E6EDF3",
+    "labelTextColor": "#E6EDF3",
+    "classText": "#E6EDF3",
+
+    "actorBkg": "#161B22",
+    "actorBorder": "#76B900",
+    "actorTextColor": "#E6EDF3",
+    "actorLineColor": "#6E7681",
+    "signalColor": "#C9D1D9",
+    "signalTextColor": "#E6EDF3",
+    "labelBoxBkgColor": "#14300A",
+    "labelBoxBorderColor": "#76B900",
+    "loopTextColor": "#E6EDF3",
+    "noteBkgColor": "#1A2E0B",
+    "noteBorderColor": "#76B900",
+    "noteTextColor": "#DBF3B0",
+    "activationBkgColor": "#21313F",
+    "activationBorderColor": "#76B900",
+    "sequenceNumberColor": "#0B0F14",
+
+    "pie1": "#76B900",
+    "pie2": "#4CC9F0",
+    "pie3": "#E0A030",
+    "pie4": "#C77DFF",
+    "pie5": "#FF6B6B"
+  },
+  "htmlLabels": false,
+  "flowchart": { "curve": "basis", "htmlLabels": false, "padding": 14, "useMaxWidth": true },
+  "sequence": { "useMaxWidth": true, "mirrorActors": false },
+  "themeCSS": ".edgeLabel, .edgeLabel p { background-color: #0B0F14 !important; color: #C9D1D9 !important; } .edgeLabel rect { fill: #0B0F14 !important; opacity: 0.92; } .cluster-label .nodeLabel, .cluster-label p { color: #9DA7B0 !important; } .accent > rect, .accent > polygon, .accent > circle, .accent > path { fill: #14300A !important; stroke: #76B900 !important; stroke-width: 2px !important; } .accent .nodeLabel, .accent .nodeLabel p { color: #DBF3B0 !important; } .accentEdge { stroke: #76B900 !important; stroke-width: 2.5px !important; }"
+}

@@ -1,0 +1,50 @@
+# Midnight-dark plot style — same palette as the decks/diagrams.
+# Use for any matplotlib chart/graph/map:
+#     import matplotlib.pyplot as plt
+#     plt.style.use('<skill-dir>/assets/midnight-dark.mplstyle')
+# Save transparent so plots drop onto the dark slide:
+#     fig.savefig('diagrams/pNN.svg', transparent=True, bbox_inches='tight')
+# (matplotlib is not installed in this env by default: `pip install matplotlib`.)
+
+# Series colors: Lime accent first, then a restrained cool/warm set.
+axes.prop_cycle: cycler('color', ['76B900', '4CC9F0', 'E0A030', 'C77DFF', 'FF6B6B', '9DA7B0'])
+
+figure.facecolor: none
+figure.edgecolor: none
+savefig.facecolor: none
+savefig.edgecolor: none
+savefig.transparent: True
+
+axes.facecolor: none
+axes.edgecolor: 3A424C
+axes.labelcolor: E6EDF3
+axes.titlecolor: E6EDF3
+axes.titlesize: 14
+axes.titleweight: 600
+axes.labelsize: 11
+axes.grid: True
+axes.axisbelow: True
+axes.spines.top: False
+axes.spines.right: False
+
+grid.color: 232A31
+grid.linewidth: 0.8
+grid.alpha: 0.9
+
+text.color: E6EDF3
+xtick.color: 9DA7B0
+ytick.color: 9DA7B0
+xtick.labelsize: 10
+ytick.labelsize: 10
+
+legend.frameon: False
+legend.labelcolor: E6EDF3
+legend.fontsize: 10
+
+lines.linewidth: 2.2
+lines.markersize: 6
+patch.edgecolor: 0B0F14
+
+font.family: sans-serif
+font.sans-serif: Inter, Segoe UI, DejaVu Sans, sans-serif
+font.size: 11

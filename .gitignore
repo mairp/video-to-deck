@@ -1,0 +1,18 @@
+# Python venv created by scripts/setup.sh (whisper + deps, ~2 GB)
+.venv/
+__pycache__/
+*.pyc
+
+# Local, machine-specific overrides (agent command, endpoints, model pins).
+# Copy local.env.example -> local.env and edit. Never committed.
+local.env
+
+# Working backups
+*.bak
+*.bak-*
+
+# Generated output
+decks/
+*.pptx
+*.pdf
+*.html

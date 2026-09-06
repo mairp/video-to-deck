@@ -1,0 +1,89 @@
+/* @theme midnight-dark */
+/*
+ * Midnight-dark deck theme — dark graphite slides, a single lime accent.
+ * Inherits Marp's default layout, then overrides color/typography only.
+ * Image sizing/fit is governed by the fit-CSS injected by render.sh — do not
+ * fight it here.
+ */
+@import 'default';
+
+:root {
+  --nv-bg: #0B0F14;
+  --nv-surface: #161B22;
+  --nv-border: #30363D;
+  --nv-text: #E6EDF3;
+  --nv-muted: #9DA7B0;
+  --nv-accent: #76B900;   /* focal accent */
+  --nv-accent-dim: #5A7D1F;
+  --nv-link: #8FD13F;
+}
+
+section {
+  background: var(--nv-bg);
+  color: var(--nv-text);
+  font-family: Inter, "Segoe UI", "DejaVu Sans", sans-serif;
+}
+
+/* Headings: green, with a green rule under section titles */
+h1 { color: var(--nv-accent); font-weight: 700; letter-spacing: -0.01em; }
+h2 {
+  color: var(--nv-accent);
+  font-weight: 600;
+  border-bottom: 2px solid var(--nv-accent);
+  padding-bottom: 0.15em;
+}
+h3, h4, h5, h6 { color: var(--nv-text); }
+
+/* Title slide (first section) gets a heavier accent bar */
+section.lead h1 { border-bottom: 3px solid var(--nv-accent); padding-bottom: 0.2em; }
+
+strong { color: #FFFFFF; }
+em { color: var(--nv-muted); }
+a { color: var(--nv-link); text-decoration: none; }
+
+/* Bullets: subtle green markers */
+ul > li::marker { color: var(--nv-accent-dim); }
+ol > li::marker { color: var(--nv-muted); }
+
+/* Code — dark, readable, green-tinted inline */
+code {
+  background: #10161D;
+  color: #DBF3B0;
+  border: 1px solid var(--nv-border);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+}
+pre, pre code {
+  background: #10161D;
+  color: #E6EDF3;
+  border: 1px solid var(--nv-border);
+  border-radius: 6px;
+}
+
+/* Tables
+ * NOTE: Marp's `default` theme zebra-stripes tbody rows with a LIGHT background. On this dark
+ * theme that put light text on a near-white row — every table was unreadable. Override the
+ * row backgrounds explicitly (and beat default's specificity with `table tbody tr`). */
+table { color: var(--nv-text); border-collapse: collapse; }
+th { background: #10161D; color: var(--nv-accent); border-color: var(--nv-border); }
+td { border-color: var(--nv-border); color: var(--nv-text); background: transparent; }
+table tbody tr,
+table tbody tr:nth-child(odd),
+table tbody tr:nth-child(even) { background: var(--nv-bg); }
+table tbody tr:nth-child(even) { background: var(--nv-surface); }
+table tbody tr td strong { color: #FFFFFF; }
+
+/* Blockquotes / notes */
+blockquote {
+  border-left: 3px solid var(--nv-accent);
+  color: var(--nv-muted);
+  background: rgba(118, 185, 0, 0.05);
+}
+
+/* Pagination + footer, muted so they don't compete with content */
+section::after { color: var(--nv-muted); }
+footer, header { color: var(--nv-muted); }
+
+/* Images sit on the dark slide as-is (diagrams render transparent).
+   Give raster keyframes a hair of separation from the background. */
+section img { border-radius: 6px; }
