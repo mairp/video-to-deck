@@ -69,7 +69,7 @@ done
 [[ -n "$INPUT" ]] || { echo "drive_decks.sh: need a <folder|video-file>. Try --help." >&2; exit 2; }
 [[ -n "${AGENT_CMD// }" ]] || { echo "drive_decks.sh: --agent-cmd must not be empty" >&2; exit 2; }
 # Short tag for the log filename: the command's basename, sanitized.
-AGENT_TAG="$(basename "${AGENT_CMD%% *}" | tr -c 'A-Za-z0-9_.-' '-')"
+AGENT_TAG="$(printf '%s' "$(basename "${AGENT_CMD%% *}")" | tr -c 'A-Za-z0-9_.-' '-')"
 
 # ---- resolve input: single file vs folder, and the mirror ROOT --------------
 if [[ -f "$INPUT" ]]; then
