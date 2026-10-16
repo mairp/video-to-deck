@@ -65,7 +65,7 @@ fi
 # marp's PPTX/PDF export drives a browser too. Point it at a system browser. marp-cli
 # auto-disables the Chrome sandbox when it detects it runs as root.
 bpath=""
-for b in "${CHROME_PATH:-}" chromium chromium-browser google-chrome google-chrome-stable; do
+for b in "${CHROME_PATH:-}" chromium chromium-browser google-chrome google-chrome-stable "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" "/Applications/Chromium.app/Contents/MacOS/Chromium"; do
   [[ -z "$b" ]] && continue
   p="$(command -v "$b" 2>/dev/null || true)"; [[ -n "${p:-}" ]] && { bpath="$p"; break; }
   [[ -x "$b" ]] && { bpath="$b"; break; }
@@ -77,6 +77,15 @@ bpath_args=(); [[ -n "$bpath" ]] && bpath_args=(--browser-path "$bpath")
 # value greedily swallows the deck path and breaks the invocation.
 theme_css="$SCRIPT_DIR/../assets/theme-midnight-dark.css"
 theme_args=(); [[ -f "$theme_css" ]] && theme_args=(--theme "$theme_css")
+
+# --allow-local-files is what lets marp embed the deck's own keyframes (frames/kf_*.jpg). It would
+# also embed ANY local file an image tag points at, and deck text is model-written from video
+# content, so refuse absolute and file:// image paths unless explicitly allowed.
+if [[ "${V2D_ALLOW_ABSOLUTE_IMAGES:-0}" != 1 ]] && grep -nE '!\[[^]]*\]\((file:|/|~|\.\./)' "$deck" >&2; then
+  echo "render.sh: refusing to export — the image paths above point outside the deck folder." >&2
+  echo "           Fix them to relative paths (frames/...), or set V2D_ALLOW_ABSOLUTE_IMAGES=1." >&2
+  exit 3
+fi
 
 stem="${deck%.md}"
 run() {

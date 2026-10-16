@@ -23,7 +23,9 @@
 #                                  --agent-cmd "llm -m gpt-4o-mini"
 #                                Any CLI that reads a prompt and writes files works.
 #   --out DIR                  output root (default: <input-dir>/decks)
-#   --no-vision                skip the vision caption pass (OCR only)
+#   --vision                   caption keyframes with a vision model (off by default; also on
+#                                when VISION_MODEL is set, e.g. in local.env)
+#   --no-vision                force the vision caption pass off (OCR only)
 #   --no-finalize              skip the trailing mermaid-sanitize + topic-rename
 #   --pdf                      after authoring, export every deck.md to PDF (mermaid
 #                                pre-rendered to images). Collapses the leaf folder so each
@@ -44,7 +46,7 @@ SCR="$SKILL_DIR/scripts"
 PY="$SKILL_DIR/.venv/bin/python"; [[ -x "$PY" ]] || PY=python3
 # Optional machine-local overrides (agent command, endpoints, model pins). Gitignored.
 # shellcheck disable=SC1091
-[[ -f "$SKILL_DIR/local.env" ]] && source "$SKILL_DIR/local.env"
+[[ -f "$SKILL_DIR/local.env" && -z "${V2D_NO_LOCAL_ENV:-}" ]] && source "$SKILL_DIR/local.env"
 # evidence.md above this many bytes won't fit a ~65k-context model once the system prompt +
 # template + diagram cheatsheet are added, so we skip the model and use the deterministic
 # evidence_to_deck.py directly. (OCR-heavy screencasts blow past this easily.) Raise it via env
@@ -52,24 +54,30 @@ PY="$SKILL_DIR/.venv/bin/python"; [[ -x "$PY" ]] || PY=python3
 EVIDENCE_MAX_BYTES="${EVIDENCE_MAX_BYTES:-100000}"
 
 AGENT_CMD="${V2D_AGENT_CMD:-claude -p}"
-OUT=""; VISION=1; FINALIZE=1; BACKGROUND=0; DRY=0; PDF=0; INPUT=""
+# Vision is opt-in: on when asked for, or when local.env/env names a vision model.
+if [[ -n "${VISION_MODEL:-}" ]]; then VISION=1; else VISION=0; fi
+OUT=""; FINALIZE=1; BACKGROUND=0; DRY=0; PDF=0; INPUT=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agent-cmd)   AGENT_CMD="${2:?}"; shift 2 ;;
     --out)         OUT="${2:?}"; shift 2 ;;
+    --vision)      VISION=1; shift ;;
     --no-vision)   VISION=0; shift ;;
     --no-finalize) FINALIZE=0; shift ;;
     --pdf)         PDF=1; shift ;;
     --background)  BACKGROUND=1; shift ;;
     --dry-run)     DRY=1; shift ;;
-    -h|--help)     sed -n '2,38p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help)     awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
     *)             [[ -z "$INPUT" ]] && INPUT="$1" || echo "drive_decks.sh: ignoring extra arg $1" >&2; shift ;;
   esac
 done
 [[ -n "$INPUT" ]] || { echo "drive_decks.sh: need a <folder|video-file>. Try --help." >&2; exit 2; }
 [[ -n "${AGENT_CMD// }" ]] || { echo "drive_decks.sh: --agent-cmd must not be empty" >&2; exit 2; }
+export VISION
+# Never print inline secrets (FOO_API_KEY=..., --api-key ...) from the agent command.
+AGENT_SHOWN="$(printf '%s' "$AGENT_CMD" | sed -E 's/([A-Za-z0-9_]*(KEY|TOKEN|SECRET|PASSWORD)[A-Za-z0-9_]*)=[^ ]+/\1=***/g; s/(--?(api[-_]?key|token|secret)[= ])[^ ]+/\1***/g')"
 # Short tag for the log filename: the command's basename, sanitized.
-AGENT_TAG="$(printf '%s' "$(basename "${AGENT_CMD%% *}")" | tr -c 'A-Za-z0-9_.-' '-')"
+AGENT_TAG="$(for w in $AGENT_CMD; do [[ "$w" == *=* ]] || { basename "$w"; break; }; done | tr -d '\n' | tr -c 'A-Za-z0-9_.-' '-')"
 
 # ---- resolve input: single file vs folder, and the mirror ROOT --------------
 if [[ -f "$INPUT" ]]; then
@@ -84,7 +92,10 @@ TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUT/logs/${TS}-drive-${AGENT_TAG}.log"
 
 # ---- gather videos ----------------------------------------------------------
-if [[ "$SINGLE" -eq 1 ]]; then VIDEOS=("$INPUT"); else mapfile -t VIDEOS < <(bash "$SCR/find_videos.sh" "$ROOT"); fi
+# (a read loop, not mapfile: macOS ships bash 3.2)
+VIDEOS=()
+if [[ "$SINGLE" -eq 1 ]]; then VIDEOS=("$INPUT")
+else while IFS= read -r v; do [[ -n "$v" ]] && VIDEOS+=("$v"); done < <(bash "$SCR/find_videos.sh" "$ROOT" --exclude "$OUT"); fi
 [[ "${#VIDEOS[@]}" -gt 0 ]] || { echo "drive_decks.sh: no videos under $ROOT" >&2; exit 1; }
 
 # map a video path -> its mirrored output dir (<out>/<reldir>/<stem>)
@@ -106,10 +117,6 @@ author() {  # $1 = prompt ; a FRESH agent process (fresh context) per call
 }
 
 run_all() {
-  if [[ "$VISION" -eq 1 ]]; then
-    export VISION_MODEL="${VISION_MODEL:-qwen2.5-vl}"
-    export VISION_ENDPOINT="${VISION_ENDPOINT:-http://127.0.0.1:8081/v1/chat/completions}"
-  fi
   local i=0 total="${#VIDEOS[@]}" out rel P ev_bytes
   for v in "${VIDEOS[@]}"; do
     i=$((i+1)); out="$(outdir_for "$v")"; rel="${v#$ROOT/}"
@@ -123,7 +130,7 @@ run_all() {
     if [[ "$ev_bytes" -gt "$EVIDENCE_MAX_BYTES" ]]; then
       # too big for a local model's context — go straight to the deterministic generator
       echo "[$i/$total] author (deterministic — evidence ${ev_bytes}B > ${EVIDENCE_MAX_BYTES}B, won't fit context): $rel"
-      "$PY" "$SCR/evidence_to_deck.py" "$out/evidence.md" "$out" >/dev/null 2>&1 || true
+      "$PY" "$SCR/evidence_to_deck.py" "$out/evidence.md" "$out" >/dev/null || echo "[$i/$total] deterministic author failed: $rel"
     else
       echo "[$i/$total] author (model): $rel"
       author "$P"
@@ -131,7 +138,7 @@ run_all() {
       if [[ ! -s "$out/deck.md" ]]; then
         # model failed anyway (context/other) — never leave a video deckless: deterministic fallback
         echo "[$i/$total] model author failed — deterministic fallback: $rel"
-        "$PY" "$SCR/evidence_to_deck.py" "$out/evidence.md" "$out" >/dev/null 2>&1 || true
+        "$PY" "$SCR/evidence_to_deck.py" "$out/evidence.md" "$out" >/dev/null || echo "[$i/$total] deterministic author failed: $rel"
       fi
     fi
     [[ -s "$out/deck.md" ]] && echo "[$i/$total] deck: wrote $rel" || echo "[$i/$total] NO DECK (rerun to retry): $rel"
@@ -185,8 +192,8 @@ video-to-deck  ▶  drive_decks ($([[ "$SINGLE" -eq 1 ]] && echo 'single file' |
   input  : $INPUT
   videos : ${#VIDEOS[@]}
   out    : $OUT   (mirrors source subfolders)
-  agent  : $AGENT_CMD
-  vision : $([[ "$VISION" -eq 1 ]] && echo 'on (qwen2.5-vl)' || echo 'off')
+  agent  : $AGENT_SHOWN
+  vision : $([[ "$VISION" -eq 1 ]] && echo "on (${VISION_MODEL:-qwen2.5-vl} @ ${VISION_ENDPOINT:-http://127.0.0.1:8081/v1/chat/completions})" || echo 'off')
   pdf    : $([[ "$PDF" -eq 1 ]] && echo 'on (collapsed -> parent folder)' || echo 'off')
   log    : $LOG
 EOF
@@ -199,11 +206,15 @@ if [[ "$DRY" -eq 1 ]]; then
 fi
 
 if [[ "$BACKGROUND" -eq 1 ]]; then
-  run_all >"$LOG" 2>&1 &
+  # Job control on: the background job gets its own process group (pgid == pid), so one
+  # `kill -- -PID` also stops ffmpeg/whisper/agent children instead of orphaning them.
+  set -m
+  run_all >"$LOG" 2>&1 </dev/null &
+  set +m
   pid=$!; disown
   echo >&2 "started in background — pid $pid"
   echo >&2 "  follow : tail -f \"$LOG\""
-  echo >&2 "  stop   : kill $pid"
+  echo >&2 "  stop   : kill -- -$pid"
   exit 0
 fi
 run_all 2>&1 | tee "$LOG"

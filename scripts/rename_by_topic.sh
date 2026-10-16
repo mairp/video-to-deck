@@ -31,7 +31,7 @@ slugify() {  # stdin -> lowercase, spaces/punct -> single dash, trimmed, max 60 
 
 MAP="$DECKS/renamed-map.tsv"
 : > "${MAP}.tmp"
-declare -A seen                       # key: "<parent>/<slug>" -> de-collide within a parent
+SEEN=$'\n'                         # newline-joined "<parent>/<slug>" (bash 3.2: no assoc arrays)
 n=0; skipped=0
 
 # -mindepth 2: deck.md lives at <...>/<stem>/deck.md, so its dir is never $DECKS itself.
@@ -54,10 +54,10 @@ while IFS= read -r -d '' deck; do
 
   # de-collide within this parent
   base="$slug"; i=2
-  while [[ -n "${seen[$parent/$slug]:-}" || ( -e "$parent/$slug" && "$parent/$slug" != "$dir" ) ]]; do
+  while [[ "$SEEN" == *$'\n'"$parent/$slug"$'\n'* || ( -e "$parent/$slug" && "$parent/$slug" != "$dir" ) ]]; do
     slug="${base}-$i"; i=$((i+1))
   done
-  seen["$parent/$slug"]=1
+  SEEN+="$parent/$slug"$'\n'
 
   newdir="$parent/$slug"
   printf '%s\t%s\n' "${dir#$DECKS/}" "${newdir#$DECKS/}" >> "${MAP}.tmp"

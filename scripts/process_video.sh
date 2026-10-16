@@ -20,6 +20,7 @@
 #   OCR_DEDUP            slide-grouping threshold, default 0.55; 0 = one block per frame.
 #                        Re-tune without re-OCR: `OCR_DEDUP=0.45 dedupe_slides.py <out_dir>`
 #   FORCE=1              redo every step even if its outputs already exist
+#   VISION=1|0           frame-vision pass on/off. Unset = on iff VISION_MODEL is set.
 #
 # Resumability: each step below skips itself when its outputs are already on disk, and the
 # OCR loop resumes at the frame it left off. A run that is interrupted part-way (agent
@@ -60,6 +61,8 @@ echo "process_video.sh: [$base] probing" >&2
 duration="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$video" 2>/dev/null || echo 0)"
 resolution="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$video" 2>/dev/null || echo '?')"
 has_audio="$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$video" 2>/dev/null | head -n1 || true)"
+
+if [[ -n "${VISION:-}" ]]; then vision_on="$VISION"; elif [[ -n "${VISION_MODEL:-}" ]]; then vision_on=1; else vision_on=0; fi
 
 # ---- 1. Audio -> transcript ------------------------------------------------
 if [[ -s "$out_dir/segments.tsv" && -z "${FORCE:-}" ]]; then
@@ -132,7 +135,7 @@ if command -v tesseract >/dev/null; then
   "$PY" "$SCRIPT_DIR/dedupe_slides.py" "$out_dir" || {
     echo "process_video.sh: dedupe_slides.py failed — falling back to one block per frame" >&2
     : > "$out_dir/ocr.txt"; : > "$out_dir/kept_frames.tsv"
-    while IFS=$'\t' read -r i ts rel txt; do
+    while IFS=$'\t' read -r _ ts rel txt; do
       [[ -z "${txt// }" ]] && continue
       printf '### [%s] %s\n%b\n\n' "$(hhmmss "$ts")" "$rel" "$txt" >> "$out_dir/ocr.txt"
       printf '%s\t%s\n' "$ts" "$rel" >> "$out_dir/kept_frames.tsv"
@@ -158,8 +161,8 @@ fi
 [[ -s "$out_dir/captions.tsv" && -z "${FORCE:-}" ]] || : > "$out_dir/captions.tsv"
 if [[ -s "$out_dir/captions.tsv" && -z "${FORCE:-}" ]]; then
   echo "process_video.sh: [$base] captions.tsv already present ($(wc -l < "$out_dir/captions.tsv") captions) — skipping vision pass" >&2
-elif [[ "${VISION:-0}" == "1" || -n "${VISION_MODEL:-}" ]]; then
-  echo "process_video.sh: [$base] vision captioning (model=${VISION_MODEL:-qwen2.5-vl}); ~10s/frame on a local VLM — see caption_frames.py progress below" >&2
+elif [[ "$vision_on" == "1" ]]; then
+  echo "process_video.sh: [$base] vision captioning (model=${VISION_MODEL:-qwen2.5-vl}) — see caption_frames.py progress below" >&2
   if "$PY" "$SCRIPT_DIR/caption_frames.py" "$out_dir/kept_frames.tsv" "$out_dir"; then
     :
   else
@@ -187,7 +190,7 @@ echo "process_video.sh: [$base] writing evidence.md" >&2
 
   printf '## Timestamped transcript segments\n\n'
   if [[ -s "$out_dir/segments.tsv" ]]; then
-    while IFS=$'\t' read -r start end text; do
+    while IFS=$'\t' read -r start _ text; do
       printf -- '- [%s] %s\n' "$(hhmmss "$start")" "$text"
     done < "$out_dir/segments.tsv"
   else
