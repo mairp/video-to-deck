@@ -245,8 +245,12 @@ def main():
     title = os.path.splitext(os.path.basename(meta.get('source', title_file or 'Presentation')))[0]
     subtitle = extract_transcript_snippet(sections) or 'Auto-generated deck from transcript/OCR'
 
-    ocr_blocks = parse_ocr_blocks(sections.get('On-screen text (OCR of keyframes)', ''))
-    captions = parse_visual_captions(sections.get('Visual descriptions (vision model: qwen2.5-vl)', '') or sections.get('Visual descriptions', ''))
+    # Headings carry a suffix naming the model/source, e.g. "Visual descriptions (vision model: X)"
+    # or "On-screen text (video model)" — match on the prefix, not the exact string.
+    def section(prefix):
+        return next((v for k, v in sections.items() if k.startswith(prefix)), '')
+    ocr_blocks = parse_ocr_blocks(section('On-screen text'))
+    captions = parse_visual_captions(section('Visual descriptions'))
     segments_md = sections.get('Timestamped transcript segments', '')
 
     deck = build_deck(title, subtitle, meta, ocr_blocks, captions, segments_md, out_dir)

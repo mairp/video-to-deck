@@ -22,9 +22,12 @@ Enable + configure via env (this script is only called when VISION is on):
                    visual coverage end-to-end. 0 = no cap.
   VISION_TIMEOUT   per-request seconds (default: 120).
 
+  VISION_MAX_FAILS stop after this many consecutive failures with no success yet (default: 3).
+
 Uses only the Python stdlib (urllib) — no extra deps. Best-effort: a frame that fails is
-skipped with a warning; if the endpoint is unreachable at all, exits non-zero so the caller
-can note that vision was unavailable and fall back to OCR.
+skipped with a warning. A circuit breaker stops after VISION_MAX_FAILS failures in a row with no
+success, and exits non-zero so the caller falls back to OCR — a dead or hung endpoint costs a
+few timeouts, not VISION_TIMEOUT x every frame.
 """
 import base64
 import json
@@ -85,6 +88,7 @@ def main():
     prompt = os.environ.get("VISION_PROMPT", DEFAULT_PROMPT)
     max_n = int(os.environ.get("VISION_MAX", "40"))
     timeout = float(os.environ.get("VISION_TIMEOUT", "120"))
+    max_fails = int(os.environ.get("VISION_MAX_FAILS", "3"))
 
     frames = []
     with open(tsv, encoding="utf-8") as fh:
@@ -111,6 +115,7 @@ def main():
     ok = 0
     missing = 0
     first_error = None
+    streak = 0
     n = len(frames)
     with open(out_path, "w", encoding="utf-8") as out:
         for i, (ts, rel) in enumerate(frames, 1):
@@ -126,10 +131,16 @@ def main():
                 out.write(f"{ts}\t{rel}\t{cap}\n")
                 out.flush()
                 ok += 1
-            except (urllib.error.URLError, urllib.error.HTTPError, OSError) as e:
+                streak = 0
+            except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError, KeyError) as e:
                 if first_error is None:
                     first_error = e
+                streak += 1
                 print(f"caption_frames.py: frame {rel} failed: {e}", file=sys.stderr)
+                if ok == 0 and streak >= max_fails:
+                    print(f"caption_frames.py: {streak} consecutive failures and no success — "
+                          f"giving up on the vision pass (VISION_MAX_FAILS={max_fails})", file=sys.stderr)
+                    break
             # Heartbeat: this loop is minutes long on a local VLM. Silence here is what
             # makes callers (and agent harnesses) think the whole skill has hung.
             if i == 1 or i % 5 == 0 or i == n:

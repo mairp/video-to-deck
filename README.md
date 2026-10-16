@@ -31,11 +31,21 @@ used here.
 ```bash
 git clone https://github.com/mairp/video-to-deck
 cd video-to-deck
-bash scripts/setup.sh          # whisper venv, tesseract, marp-cli, mermaid-cli
+bash scripts/setup.sh --check  # read-only: what's present and what's missing
+bash scripts/setup.sh          # install what's missing
 ```
 
-`ffmpeg` must already be on the system. `setup.sh` is idempotent — re-run it any time. If `npm`
-is missing it skips marp/mermaid and decks simply stay as valid Markdown.
+| OS | Notes |
+|---|---|
+| macOS | Needs [Homebrew](https://brew.sh). Works with the stock bash 3.2. |
+| Ubuntu / Debian | Uses apt; asks for sudo. |
+| Fedora / RHEL | Uses dnf. |
+| Windows | Use WSL2 (Ubuntu), then follow the Ubuntu path. |
+
+`setup.sh` installs ffmpeg, tesseract and a Chromium browser through the OS package manager,
+faster-whisper into `./.venv`, and marp-cli + mermaid-cli via npm. It is idempotent; install
+output goes to `.setup.log`. If `npm` is missing it skips marp/mermaid and decks simply stay as
+valid Markdown.
 
 ## Quick start
 
@@ -87,7 +97,8 @@ hang.
 ## Optional vision pass
 
 OCR only reads *text*. A vision model also captures what text can't: a chart's trend, a diagram's
-shape, UI layout, a speaker's gesture. Point it at any OpenAI-compatible endpoint:
+shape, UI layout, a speaker's gesture. It is off by default; pass `--vision` or set
+`VISION_MODEL`, and point it at any OpenAI-compatible endpoint:
 
 ```bash
 VISION_MODEL=qwen2.5-vl \
@@ -96,8 +107,9 @@ VISION_ENDPOINT=http://127.0.0.1:8081/v1/chat/completions \
 ```
 
 `evidence.md` then gains a **"Visual descriptions"** section. Set `VISION_API_KEY` if the
-endpoint needs a bearer token. If the endpoint is unreachable the run continues with OCR only —
-nothing breaks. Disable with `--no-vision`.
+endpoint needs a bearer token. If the endpoint is unreachable the pass gives up after three
+failed frames (`VISION_MAX_FAILS`) and the run continues with OCR only — nothing breaks.
+`--no-vision` always wins, even when `VISION_MODEL` is set.
 
 ## Output layout, finalize, regroup
 
@@ -154,6 +166,7 @@ drive_decks.sh <folder | video-file> [options]
 
   --agent-cmd "CMD"   command that authors one deck   (default: "claude -p", or $V2D_AGENT_CMD)
   --out DIR           output root                     (default: <input>/decks)
+  --vision            caption keyframes with a vision model (off by default)
   --no-vision         OCR only, skip the caption pass
   --no-finalize       skip Mermaid-sanitize + topic-rename (keeps stem folder names)
   --pdf               export every deck to PDF after authoring
@@ -162,11 +175,37 @@ drive_decks.sh <folder | video-file> [options]
   -h | --help
 ```
 
-Every run writes `<out>/logs/<UTC>-drive-<agent>.log`. Re-running the same command is safe:
-finished videos print `skip` and a completed media pass is reused.
+Every run writes `<out>/logs/<UTC>-drive-<agent>.log` (inline secrets in `--agent-cmd` are masked).
+Re-running the same command is safe: finished videos print `skip` and a completed media pass is
+reused. `--background` prints a `kill -- -PID` line that stops the whole job, children included.
 
 > **One driver per folder.** Two drivers against the same folder share `<out>/<stem>/` and will
 > clobber each other's `frames/`, `ocr.txt`, and `evidence.md`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Transcription is slow on an NVIDIA box | `bash scripts/setup.sh` installs the CUDA wheels; a `WARNING cuda path failed` line in the log means it fell back to CPU. |
+| Vision gave up after 3 frames | The endpoint is down or the model name is wrong. `bash scripts/setup.sh --check` tests reachability. |
+| `render.sh: refusing to export` | The deck references an image outside its folder. Make the path relative (`frames/...`). |
+| PDF/PPTX export fails | Needs marp-cli and a Chrome/Chromium. Set `CHROME_PATH` if the browser is somewhere unusual. |
+| Two runs clobber each other | Run one driver per output folder. |
+
+## Development
+
+```bash
+python3 -m unittest discover -s tests -v   # offline; a stub agent writes the decks
+```
+
+CI runs the same suite on Ubuntu and macOS (stock bash 3.2).
+
+## Pro edition
+
+**video-to-deck Pro** adds cloud providers per stage (OpenAI/Groq speech-to-text, Claude and
+Gemini frame vision, Gemini whole-video understanding, direct API deck authoring), a cost
+estimate before every run, per-call usage accounting, and a per-stage privacy banner with a
+local-only switch. It is a paid skill; this repository stays the free, fully local core.
 
 ## Using it as a Claude Code skill
 

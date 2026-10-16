@@ -16,3 +16,4 @@ decks/
 *.pptx
 *.pdf
 *.html
+.setup.log

@@ -68,7 +68,8 @@ is_renamed() {
 }
 
 # ---- pass 1: collect leaf deck dirs (immediate children that hold their own evidence.md) ----
-declare -A GROUP_DIRS   # key "reldir\tvstem" -> newline-joined dir list
+# Groups: one "reldir<TAB>vstem<TAB>dir" line per leaf (a file, not an assoc array: bash 3.2).
+GROUPS_TSV="$(mktemp)"; trap 'rm -f "$GROUPS_TSV"' EXIT
 declare -a LEAVES
 noev=0; nosrc=0
 for d in "$DECKS"/*/; do
@@ -80,8 +81,7 @@ for d in "$DECKS"/*/; do
   [[ -n "$src" ]] || { echo "skip (no Source line): ${d#$DECKS/}" >&2; nosrc=$((nosrc+1)); continue; }
   rel="$(reldir_for "$src")"
   vstem="$(basename "$src")"; vstem="${vstem%.*}"
-  key="$rel"$'\t'"$vstem"
-  GROUP_DIRS["$key"]+="$d"$'\n'
+  printf '%s\t%s\t%s\n' "$rel" "$vstem" "$d" >> "$GROUPS_TSV"
   LEAVES+=("$d")
 done
 
@@ -89,9 +89,10 @@ MAP="$DECKS/regroup-map.tsv"; : > "${MAP}.tmp"
 moved=0; kept=0; quar=0; inplace=0
 
 # ---- pass 2: per source-video group, pick keeper, quarantine the rest, then place keeper ----
-for key in "${!GROUP_DIRS[@]}"; do
+while IFS= read -r key; do
   rel="${key%%$'\t'*}"; vstem="${key##*$'\t'}"
-  mapfile -t dirs < <(printf '%s' "${GROUP_DIRS[$key]}" | sed '/^$/d')
+  dirs=()
+  while IFS= read -r dd; do dirs+=("$dd"); done < <(awk -F'\t' -v r="$rel" -v s="$vstem" '$1==r && $2==s {print $3}' "$GROUPS_TSV")
 
   keeper="${dirs[0]}"
   if [[ "${#dirs[@]}" -gt 1 ]]; then
@@ -134,7 +135,7 @@ for key in "${!GROUP_DIRS[@]}"; do
     printf 'ok   %-45s -> %s/\n' "${keeper#$DECKS/}" "${target#$DECKS/}"
   fi
   moved=$((moved+1)); kept=$((kept+1))
-done
+done < <(cut -f1,2 "$GROUPS_TSV" | sort -u)
 
 if [[ "$DRY" -eq 1 ]]; then
   rm -f "${MAP}.tmp"

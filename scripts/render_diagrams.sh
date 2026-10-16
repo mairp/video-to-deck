@@ -30,15 +30,17 @@ have_puml=0; command -v plantuml >/dev/null && have_puml=1
 # mmdc drives headless Chrome; as root it needs --no-sandbox. Prefer a system browser
 # (puppeteer's bundled download is version-pinned and flaky) via executablePath.
 chrome_bin=""
-for b in "${PUPPETEER_EXECUTABLE_PATH:-}" chromium chromium-browser google-chrome google-chrome-stable; do
+for b in "${PUPPETEER_EXECUTABLE_PATH:-}" chromium chromium-browser google-chrome google-chrome-stable "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" "/Applications/Chromium.app/Contents/MacOS/Chromium"; do
   [[ -z "$b" ]] && continue
   p="$(command -v "$b" 2>/dev/null || true)"; [[ -x "${p:-$b}" ]] && { chrome_bin="${p:-$b}"; break; }
 done
+# Chrome refuses to start sandboxed as root; only then (or V2D_NO_SANDBOX=1) drop the sandbox.
+sandbox_args=""; [[ "$(id -u)" == 0 || "${V2D_NO_SANDBOX:-0}" == 1 ]] && sandbox_args='"--no-sandbox","--disable-setuid-sandbox"'
 pconf="$dir/diagrams/.puppeteer.json"
 if [[ -n "$chrome_bin" ]]; then
-  printf '{"executablePath":"%s","args":["--no-sandbox","--disable-setuid-sandbox"]}' "$chrome_bin" > "$pconf"
+  printf '{"executablePath":"%s","args":[%s]}' "$chrome_bin" "$sandbox_args" > "$pconf"
 else
-  printf '{"args":["--no-sandbox","--disable-setuid-sandbox"]}' > "$pconf"
+  printf '{"args":[%s]}' "$sandbox_args" > "$pconf"
 fi
 
 DECK="$deck" DIR="$dir" PCONF="$pconf" THEME="$theme" NORMALIZER="$SCRIPT_DIR/normalize_svg.py" HAVE_MMDC="$have_mmdc" HAVE_PUML="$have_puml" python3 - <<'PY'

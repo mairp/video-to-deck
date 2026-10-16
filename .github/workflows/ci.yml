@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]   # macOS runs the scripts under its stock /bin/bash 3.2
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install ffmpeg + tesseract
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install ffmpeg tesseract; else sudo apt-get update -q && sudo apt-get install -y -q ffmpeg tesseract-ocr shellcheck; fi
+      - name: Static checks
+        run: |
+          for f in scripts/*.sh; do /bin/bash -n "$f"; done
+          python -m py_compile scripts/*.py tests/*.py
+          if command -v shellcheck >/dev/null; then shellcheck -S error scripts/*.sh; fi
+      - name: Read-only setup check
+        run: /bin/bash scripts/setup.sh --check || true
+      - name: Unit + end-to-end tests (offline)
+        env:
+          V2D_TEST_BASH: /bin/bash   # the stock shell (3.2 on macOS), not a newer brew bash
+        run: python -m unittest discover -s tests -v

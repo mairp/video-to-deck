@@ -28,8 +28,9 @@ deck (PPTX/PDF/HTML) via one `render.sh` command later.
 ```bash
 bash "$SKILL/scripts/setup.sh"
 ```
-Installs faster-whisper (transcription), tesseract (OCR), and — if `npm` is present —
-marp-cli and mermaid-cli. Safe to re-run. ffmpeg must already be installed.
+Installs ffmpeg, tesseract (OCR) and a browser via Homebrew/apt/dnf, faster-whisper into a
+venv, and — if `npm` is present — marp-cli and mermaid-cli. Safe to re-run. `--check` only
+reports.
 
 ### 2. Find the videos
 ```bash
@@ -57,9 +58,9 @@ VISION_ENDPOINT=http://127.0.0.1:8081/v1/chat/completions \
   bash "$SKILL/scripts/process_video.sh" "<video>" "<out_dir>/<video-stem>"
 ```
 When on, `evidence.md` gains a **"## Visual descriptions"** section alongside the OCR — use it
-for chart/diagram slides. Any OpenAI-compatible vision endpoint works (llama-swap once a
-local server such as llama.cpp/llama-swap or Ollama, or a hosted API; `VISION_API_KEY` if it
-needs a token). If the endpoint is unreachable the run continues with OCR only — nothing breaks.
+for chart/diagram slides. Any OpenAI-compatible vision endpoint works (a local server such as
+llama.cpp or Ollama, or a hosted API; `VISION_API_KEY` if it needs a token). If the endpoint is
+unreachable the pass gives up after a few frames and continues with OCR only — nothing breaks.
 
 ### 4. Write the deck
 Read the whole `evidence.md`. Copy `"$SKILL/templates/deck.marp.md"` to `<out_dir>/<video-stem>/deck.md`
