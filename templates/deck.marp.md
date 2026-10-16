@@ -9,10 +9,11 @@ size: 16:9
 <!--
 This is a Marp deck skeleton. Rules for the agent filling it in:
 - One "---" line separates slides.
-- Slide 1 = title. Then ~1 slide per topic from the transcript/OCR.
-- Bullets are terse (<= ~10 words). Put detail in speaker notes (HTML comment).
+- Slide 1 = title. Then ONE slide per source slide (each '### [timespan]' OCR block).
+- Bullets are a full line (~15-20 words), 5-8 per slide; carry every number/label onto the
+  slide. Speaker notes (HTML comment) are only for what was SAID but not shown.
 - Cite the source moment with a [HH:MM:SS] tag when a claim comes from a specific point.
-- Reference a keyframe image when it adds signal:  ![w:600](frames/kf_0007.jpg)
+- Put the slide's keyframe on it by default:  ![w:600](frames/kf_0007.jpg)
 - For STRUCTURAL topics, use a diagram slide instead of bullets (see the two examples below
   and references/diagrams-cheatsheet.md). Delete the examples you don't use.
 - Only include what the evidence supports. Do not invent facts.
