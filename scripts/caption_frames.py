@@ -36,6 +36,9 @@ import sys
 import urllib.request
 import urllib.error
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vision_presets  # noqa: E402
+
 DEFAULT_PROMPT = (
     "This is a single frame from a presentation/screen-recording video. In 1-3 sentences, "
     "describe what it SHOWS that plain text can't convey: diagrams, charts (and their trend), "
@@ -49,29 +52,31 @@ def die(msg, code=1):
     sys.exit(code)
 
 
-def caption_one(url, model, key, prompt, timeout, img_path):
-    with open(img_path, "rb") as fh:
-        b64 = base64.b64encode(fh.read()).decode("ascii")
-    payload = {
-        "model": model,
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url",
-                 "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
-            ],
-        }],
-        "max_tokens": 300,
-        "temperature": 0.2,
-    }
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, method="POST")
-    req.add_header("Content-Type", "application/json")
-    req.add_header("Authorization", f"Bearer {key or 'dummy'}")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        body = json.loads(resp.read().decode("utf-8"))
-    return body["choices"][0]["message"]["content"].strip()
+class VisionHTTPError(Exception):
+    def __init__(self, status, body):
+        super().__init__(f"HTTP {status}: {body[:300]}")
+        self.status, self.body = status, body
+
+
+def make_sender(url, key, timeout):
+    """send(payload) -> reply dict, for vision_presets.caption()."""
+    def send(payload):
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("Authorization", f"Bearer {key or 'dummy'}")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            raise VisionHTTPError(e.code, e.read().decode("utf-8", "replace"))
+    return send
+
+
+def caption_one(r, key, prompt, timeout, img_path):
+    b64 = base64.b64encode(vision_presets.jpeg_bytes(img_path, r.max_edge)).decode("ascii")
+    text, _, _ = vision_presets.caption(make_sender(r.endpoint, key, timeout), r, prompt, b64)
+    return text
 
 
 def main():
@@ -81,9 +86,11 @@ def main():
     if not os.path.isfile(tsv):
         die(f"no such file: {tsv}")
 
-    model = os.environ.get("VISION_MODEL", "qwen2.5-vl")
-    url = os.environ.get("VISION_ENDPOINT",
-                         "http://127.0.0.1:8081/v1/chat/completions")
+    try:
+        r = vision_presets.resolve()
+    except vision_presets.PresetError as e:
+        die(str(e), code=2)
+    model, url = r.model, r.endpoint
     key = os.environ.get("VISION_API_KEY", "")
     prompt = os.environ.get("VISION_PROMPT", DEFAULT_PROMPT)
     max_n = int(os.environ.get("VISION_MAX", "40"))
@@ -126,13 +133,13 @@ def main():
                       file=sys.stderr)
                 continue
             try:
-                cap = caption_one(url, model, key, prompt, timeout, img)
+                cap = caption_one(r, key, prompt, timeout, img)
                 cap = " ".join(cap.split())  # single line for TSV
                 out.write(f"{ts}\t{rel}\t{cap}\n")
                 out.flush()
                 ok += 1
                 streak = 0
-            except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError, KeyError) as e:
+            except (urllib.error.URLError, VisionHTTPError, OSError, ValueError, KeyError) as e:
                 if first_error is None:
                     first_error = e
                 streak += 1

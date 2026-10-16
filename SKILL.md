@@ -135,6 +135,7 @@ See `README.md` for the full batch guide.
 ## References
 - `references/marp-cheatsheet.md` — Marp slide syntax (separators, images, notes, columns).
 - `references/diagrams-cheatsheet.md` — when to draw a diagram and the syntax for each type.
+- `references/vision-local-models.md` — local vision model + runtime presets (`--vision-model`, `--vision-runtime`).
 
 ## Notes
 - OCR captures on-screen text well for screencasts/slide videos. For live-action footage the

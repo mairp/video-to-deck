@@ -24,7 +24,11 @@
 #                                Any CLI that reads a prompt and writes files works.
 #   --out DIR                  output root (default: <input-dir>/decks)
 #   --vision                   caption keyframes with a vision model (off by default; also on
-#                                when VISION_MODEL is set, e.g. in local.env)
+#                                when VISION_MODEL or VISION_PRESET is set, e.g. in local.env)
+#   --vision-model ID          local vision model preset (implies --vision), e.g. qwen3-vl-8b,
+#                                gemma-3-12b — list: python3 scripts/vision_presets.py list
+#   --vision-runtime ID        server it runs on: llama-swap (default) | llama-server | ollama |
+#                                vllm | sglang | lmstudio | mlx-vlm | localai | jan | koboldcpp
 #   --no-vision                force the vision caption pass off (OCR only)
 #   --no-finalize              skip the trailing mermaid-sanitize + topic-rename
 #   --pdf                      after authoring, export every deck.md to PDF (mermaid
@@ -55,13 +59,15 @@ EVIDENCE_MAX_BYTES="${EVIDENCE_MAX_BYTES:-100000}"
 
 AGENT_CMD="${V2D_AGENT_CMD:-claude -p}"
 # Vision is opt-in: on when asked for, or when local.env/env names a vision model.
-if [[ -n "${VISION_MODEL:-}" ]]; then VISION=1; else VISION=0; fi
+if [[ -n "${VISION_MODEL:-}${VISION_PRESET:-}" ]]; then VISION=1; else VISION=0; fi
 OUT=""; FINALIZE=1; BACKGROUND=0; DRY=0; PDF=0; INPUT=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agent-cmd)   AGENT_CMD="${2:?}"; shift 2 ;;
     --out)         OUT="${2:?}"; shift 2 ;;
     --vision)      VISION=1; shift ;;
+    --vision-model)   export VISION_PRESET="${2:?}"; VISION=1; shift 2 ;;
+    --vision-runtime) export VISION_RUNTIME="${2:?}"; shift 2 ;;
     --no-vision)   VISION=0; shift ;;
     --no-finalize) FINALIZE=0; shift ;;
     --pdf)         PDF=1; shift ;;
@@ -193,7 +199,7 @@ video-to-deck  ▶  drive_decks ($([[ "$SINGLE" -eq 1 ]] && echo 'single file' |
   videos : ${#VIDEOS[@]}
   out    : $OUT   (mirrors source subfolders)
   agent  : $AGENT_SHOWN
-  vision : $([[ "$VISION" -eq 1 ]] && echo "on (${VISION_MODEL:-qwen2.5-vl} @ ${VISION_ENDPOINT:-http://127.0.0.1:8081/v1/chat/completions})" || echo 'off')
+  vision : $([[ "$VISION" -eq 1 ]] && echo "on ($("$PY" "$SCR/vision_presets.py" label 2>&1))" || echo 'off')
   pdf    : $([[ "$PDF" -eq 1 ]] && echo 'on (collapsed -> parent folder)' || echo 'off')
   log    : $LOG
 EOF

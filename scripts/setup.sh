@@ -148,15 +148,24 @@ fi
 
 # 6. Optional vision pass: no install needed, it calls an OpenAI-compatible endpoint. Report
 #    whether the configured one answers.
-if [[ "${VISION:-0}" == "1" || -n "${VISION_MODEL:-}" ]]; then
-  vurl="${VISION_ENDPOINT:-http://127.0.0.1:8081/v1/chat/completions}"
-  if curl -s --max-time 4 "${vurl%/chat/completions}/models" >/dev/null 2>&1; then
-    ok "vision endpoint reachable (${VISION_MODEL:-qwen2.5-vl} @ $vurl)"
+if [[ "${VISION:-0}" == "1" || -n "${VISION_MODEL:-}${VISION_PRESET:-}" ]]; then
+  if ! vdesc="$(python3 "$SKILL_ROOT/scripts/vision_presets.py" describe 2>&1)"; then
+    fail "vision preset: $vdesc"
   else
-    miss "vision model set but $vurl is not reachable — see references/vision-qwen-vl.md"
+    vmodel="$(printf '%s' "$vdesc" | python3 -c 'import json,sys; print(json.load(sys.stdin)["model"])')"
+    vmodels="$(printf '%s' "$vdesc" | python3 -c 'import json,sys; print(json.load(sys.stdin)["models_url"])')"
+    if listing="$(curl -s --max-time 4 "$vmodels" 2>/dev/null)" && [[ -n "$listing" ]]; then
+      if printf '%s' "$listing" | grep -qF "\"$vmodel\""; then
+        ok "vision endpoint up and serving $vmodel ($vmodels)"
+      else
+        miss "vision endpoint up, but '$vmodel' is not in $vmodels — pull/load it or set VISION_MODEL to the served id"
+      fi
+    else
+      miss "vision endpoint $vmodels not reachable — start the server; see references/vision-local-models.md"
+    fi
   fi
 else
-  ok "vision pass off (default). Enable with --vision / VISION_MODEL — see references/vision-qwen-vl.md"
+  ok "vision pass off (default). Enable with --vision-model <preset> — see references/vision-local-models.md"
 fi
 
 if [[ "$FAILED" -eq 1 ]]; then

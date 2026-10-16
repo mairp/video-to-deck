@@ -106,6 +106,18 @@ VISION_ENDPOINT=http://127.0.0.1:8081/v1/chat/completions \
   scripts/drive_decks.sh /path/to/videos --agent-cmd "claude -p"
 ```
 
+**Local model presets.** 16 current local vision models (Qwen3-VL, Qwen3.5/3.6/3.8, Gemma 4,
+Ministral 3, MiniCPM-V 4.7, GLM-4.6V, Muse Glimmer, ...) on 10 runtimes (llama.cpp, llama-swap,
+Ollama, vLLM, SGLang, LM Studio, MLX-VLM, LocalAI, Jan, KoboldCpp) are one flag away, with model
+ids, thinking switches and frame sizes filled in:
+
+```bash
+scripts/drive_decks.sh talks/ --vision-model qwen3-vl-8b --vision-runtime ollama
+python3 scripts/vision_presets.py list
+```
+
+See [references/vision-local-models.md](references/vision-local-models.md) for picks per GPU size.
+
 `evidence.md` then gains a **"Visual descriptions"** section. Set `VISION_API_KEY` if the
 endpoint needs a bearer token. If the endpoint is unreachable the pass gives up after three
 failed frames (`VISION_MAX_FAILS`) and the run continues with OCR only — nothing breaks.
@@ -167,6 +179,8 @@ drive_decks.sh <folder | video-file> [options]
   --agent-cmd "CMD"   command that authors one deck   (default: "claude -p", or $V2D_AGENT_CMD)
   --out DIR           output root                     (default: <input>/decks)
   --vision            caption keyframes with a vision model (off by default)
+  --vision-model ID   local vision preset (implies --vision); list: scripts/vision_presets.py list
+  --vision-runtime ID llama-swap | llama-server | ollama | vllm | sglang | lmstudio | mlx-vlm | ...
   --no-vision         OCR only, skip the caption pass
   --no-finalize       skip Mermaid-sanitize + topic-rename (keeps stem folder names)
   --pdf               export every deck to PDF after authoring
