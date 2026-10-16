@@ -99,7 +99,7 @@ for key in "${!GROUP_DIRS[@]}"; do
     best_score=-1; best_mtime=-1
     for d in "${dirs[@]}"; do
       score=0; is_renamed "$d" && score=1
-      mt="$(stat -c %Y "$d" 2>/dev/null || echo 0)"
+      mt="$(stat -c %Y "$d" 2>/dev/null || stat -f %m "$d" 2>/dev/null || echo 0)"  # GNU || BSD/macOS
       if (( score > best_score )) || { (( score == best_score )) && (( mt > best_mtime )); }; then
         best_score=$score; best_mtime=$mt; keeper="$d"
       fi

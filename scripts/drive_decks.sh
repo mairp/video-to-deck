@@ -116,8 +116,10 @@ run_all() {
     if [[ -s "$out/deck.md" ]]; then echo "[$i/$total] skip: $rel"; continue; fi
     echo "[$i/$total] process: $rel"
     bash "$SCR/process_video.sh" "$v" "$out" || { echo "[$i/$total] PROCESS FAILED: $rel"; continue; }
-    P="Read $out/evidence.md and write a Marp slide deck to $out/deck.md, following the structure of $SKILL_DIR/templates/deck.marp.md and the diagram rules in $SKILL_DIR/references/diagrams-cheatsheet.md. Terse bullets; cite [HH:MM:SS]; use the 'Visual descriptions' section for diagram/chart slides; NEVER put ';' inside a mermaid label; only include what the evidence supports. Write ONLY the file $out/deck.md, then stop."
-    ev_bytes=$(stat -c%s "$out/evidence.md" 2>/dev/null || echo 0)
+    P="Read $out/evidence.md and write a Marp slide deck to $out/deck.md, following the structure of $SKILL_DIR/templates/deck.marp.md and the diagram rules in $SKILL_DIR/references/diagrams-cheatsheet.md, and the density rules in $SKILL_DIR/SKILL.md (step 4): one deck slide per '### [timespan]' block in the OCR section, every number/label/metric carried onto the slide, full-line bullets, tables for tabular content, the block's keyframe image on its slide; cite [HH:MM:SS]; use the 'Visual descriptions' section for diagram/chart slides; NEVER put ';' inside a mermaid label; only include what the evidence supports. Write ONLY the file $out/deck.md, then stop."
+    # wc -c, not `stat -c%s`: BSD/macOS stat has no -c and would always report 0 bytes.
+    ev_bytes=$(wc -c 2>/dev/null < "$out/evidence.md" | tr -d ' ' || echo 0)
+    ev_bytes="${ev_bytes:-0}"
     if [[ "$ev_bytes" -gt "$EVIDENCE_MAX_BYTES" ]]; then
       # too big for a local model's context — go straight to the deterministic generator
       echo "[$i/$total] author (deterministic — evidence ${ev_bytes}B > ${EVIDENCE_MAX_BYTES}B, won't fit context): $rel"
