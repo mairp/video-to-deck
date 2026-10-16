@@ -1,0 +1,658 @@
+{
+ "as_of": "2026-10-17",
+ "note": "Local vision model presets for VISION_PRESET=<id>. served = the model id each runtime expects (llama-swap/llama-server: the alias you configure; we suggest the preset id). thinking: none | optional | default-on. disable_via_runtime: the runtime's disable_thinking field works for this model (chat_template_kwargs.enable_thinking etc.). sampling = extra request fields sent with the preset. Vendor-reported facts; see sources and references/vision-local-models.md. Researched, not run locally.",
+ "defaults_by_vram": {
+  "8": "qwen3-vl-8b",
+  "12": "qwen3.5-9b",
+  "16": "gemma4-12b",
+  "24": "qwen3.8-27b"
+ },
+ "models": [
+  {
+   "id": "qwen3.8-27b",
+   "name": "Qwen3.8-27B (native VLM)",
+   "family": "qwen3.8",
+   "vram_gb": 24,
+   "recommended_for": "24GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3.8-27b",
+    "llama-server": "qwen3.8-27b",
+    "ollama": "qwen3.8:27b",
+    "vllm": "Qwen/Qwen3.8-27B",
+    "sglang": "Qwen/Qwen3.8-27B",
+    "default": "Qwen/Qwen3.8-27B"
+   },
+   "hf_repo": "Qwen/Qwen3.8-27B",
+   "gguf": {
+    "repo": "ggml-org/Qwen3.8-27B-GGUF",
+    "file": "Qwen3.8-27B-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen3.8-27B-Q8_0.gguf"
+   },
+   "notes": "No /no_think soft switch. reasoning_effort=low only shortens thinking (levels xhigh|medium|low). preserve_thinking irrelevant for single-turn. Vendor non-thinking: T0.7 top_p0.8 top_k20 presence1.5; thinking: T1.0 top_p0.95. Hybrid Gated-DeltaNet arch; needs recent llama.cpp/Ollama. ggml-org repo also ships mtp- and dflash- draft GGUFs (ignore for vision). OmniDocBench1.5 91.1 / CharXiv-RQ 83.7 (vendor).",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3.8-27B",
+    "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF",
+    "https://ollama.com/library/qwen3.8/tags"
+   ]
+  },
+  {
+   "id": "qwen3.6-35b-a3b",
+   "name": "Qwen3.6-35B-A3B (MoE, native VLM)",
+   "family": "qwen3.6",
+   "vram_gb": 24,
+   "recommended_for": "24GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3.6-35b-a3b",
+    "llama-server": "qwen3.6-35b-a3b",
+    "ollama": "qwen3.6:35b-a3b",
+    "vllm": "Qwen/Qwen3.6-35B-A3B",
+    "sglang": "Qwen/Qwen3.6-35B-A3B",
+    "default": "Qwen/Qwen3.6-35B-A3B"
+   },
+   "hf_repo": "Qwen/Qwen3.6-35B-A3B",
+   "gguf": {
+    "repo": "ggml-org/Qwen3.6-35B-A3B-GGUF",
+    "file": "Qwen3.6-35B-A3B-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen3.6-35B-A3B-Q8_0.gguf"
+   },
+   "notes": "20.4GB Q4_K_M + mmproj is tight on 24GB; use -c 8192. ~3B active => much faster than 27B dense. Ollama default qwen3.6:latest is this model (23-24GB).",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3.6-35B-A3B",
+    "https://huggingface.co/ggml-org/Qwen3.6-35B-A3B-GGUF",
+    "https://ollama.com/library/qwen3.6/tags"
+   ]
+  },
+  {
+   "id": "qwen3.6-27b",
+   "name": "Qwen3.6-27B (native VLM)",
+   "family": "qwen3.6",
+   "vram_gb": 24,
+   "recommended_for": "24GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3.6-27b",
+    "llama-server": "qwen3.6-27b",
+    "ollama": "qwen3.6:27b",
+    "vllm": "Qwen/Qwen3.6-27B",
+    "sglang": "Qwen/Qwen3.6-27B",
+    "default": "Qwen/Qwen3.6-27B"
+   },
+   "hf_repo": "Qwen/Qwen3.6-27B",
+   "gguf": {
+    "repo": "ggml-org/Qwen3.6-27B-GGUF",
+    "file": "Qwen3.6-27B-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen3.6-27B-Q8_0.gguf"
+   },
+   "notes": "Superseded by qwen3.8-27b at the same footprint; keep for users who already have it. Ollama also has '-coding' tags: do not use those for vision captions.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3.6-27B",
+    "https://huggingface.co/ggml-org/Qwen3.6-27B-GGUF",
+    "https://ollama.com/library/qwen3.6/tags"
+   ]
+  },
+  {
+   "id": "qwen3.5-9b",
+   "name": "Qwen3.5-9B (native VLM)",
+   "family": "qwen3.5",
+   "vram_gb": 12,
+   "recommended_for": "12GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3.5-9b",
+    "llama-server": "qwen3.5-9b",
+    "ollama": "qwen3.5:9b",
+    "vllm": "Qwen/Qwen3.5-9B",
+    "sglang": "Qwen/Qwen3.5-9B",
+    "default": "Qwen/Qwen3.5-9B"
+   },
+   "hf_repo": "Qwen/Qwen3.5-9B",
+   "gguf": {
+    "repo": "unsloth/Qwen3.5-9B-GGUF",
+    "file": "Qwen3.5-9B-Q4_K_M.gguf",
+    "mmproj": "mmproj-F16.gguf"
+   },
+   "notes": "Vendor non-thinking VL sampling T0.7 top_p0.8 top_k20 presence1.5. Card says 'Qwen3.5 does not officially support the soft switch of Qwen3'. ggml-org/Qwen3.5-9B-GGUF does not exist (HF 401); use unsloth. Q8_0 = 9.53GB for 16GB cards.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3.5-9B",
+    "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF",
+    "https://ollama.com/library/qwen3.5/tags"
+   ]
+  },
+  {
+   "id": "qwen3.5-4b",
+   "name": "Qwen3.5-4B (native VLM)",
+   "family": "qwen3.5",
+   "vram_gb": 8,
+   "recommended_for": "8GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1280,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3.5-4b",
+    "llama-server": "qwen3.5-4b",
+    "ollama": "qwen3.5:4b",
+    "vllm": "Qwen/Qwen3.5-4B",
+    "sglang": "Qwen/Qwen3.5-4B",
+    "default": "Qwen/Qwen3.5-4B"
+   },
+   "hf_repo": "Qwen/Qwen3.5-4B",
+   "gguf": {
+    "repo": "unsloth/Qwen3.5-4B-GGUF",
+    "file": "Qwen3.5-4B-Q4_K_M.gguf",
+    "mmproj": "mmproj-F16.gguf"
+   },
+   "notes": "4B card: 'Qwen3.5 models operate in thinking mode by default'. Contrast Qwen3.5-2B and 0.8B, which default to NON-thinking. The 2B card warns of thinking loops in thinking mode.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3.5-4B",
+    "https://huggingface.co/Qwen/Qwen3.5-2B",
+    "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF"
+   ]
+  },
+  {
+   "id": "qwen3-vl-8b",
+   "name": "Qwen3-VL-8B-Instruct",
+   "family": "qwen3-vl",
+   "vram_gb": 8,
+   "recommended_for": "8GB",
+   "licence": "Apache-2.0",
+   "thinking": "none",
+   "disable_via_runtime": false,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 1.5
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 300,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3-vl-8b",
+    "llama-server": "qwen3-vl-8b",
+    "ollama": "qwen3-vl:8b-instruct",
+    "vllm": "Qwen/Qwen3-VL-8B-Instruct",
+    "sglang": "Qwen/Qwen3-VL-8B-Instruct",
+    "default": "Qwen/Qwen3-VL-8B-Instruct"
+   },
+   "hf_repo": "Qwen/Qwen3-VL-8B-Instruct",
+   "gguf": {
+    "repo": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
+    "file": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen3VL-8B-Instruct-Q8_0.gguf"
+   },
+   "notes": "Separate -Thinking repos exist; do NOT use. Ollama trap: qwen3-vl:8b / :latest == 8b-thinking (same digest 901cae732162); must use :8b-instruct. Vendor VL sampling T0.7 top_p0.8 top_k20 presence1.5 (T0.2 as used today is fine for captions). OCR in 32 languages.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+    "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct-GGUF",
+    "https://ollama.com/library/qwen3-vl/tags"
+   ]
+  },
+  {
+   "id": "qwen3-vl-4b",
+   "name": "Qwen3-VL-4B-Instruct",
+   "family": "qwen3-vl",
+   "vram_gb": 6,
+   "recommended_for": "6-8GB",
+   "licence": "Apache-2.0",
+   "thinking": "none",
+   "disable_via_runtime": false,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.8
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 300,
+   "max_edge": 1280,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen3-vl-4b",
+    "llama-server": "qwen3-vl-4b",
+    "ollama": "qwen3-vl:4b-instruct",
+    "vllm": "Qwen/Qwen3-VL-4B-Instruct",
+    "sglang": "Qwen/Qwen3-VL-4B-Instruct",
+    "default": "Qwen/Qwen3-VL-4B-Instruct"
+   },
+   "hf_repo": "Qwen/Qwen3-VL-4B-Instruct",
+   "gguf": {
+    "repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
+    "file": "Qwen3VL-4B-Instruct-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf"
+   },
+   "notes": "Same family rules as qwen3-vl-8b. Third-party guidance (PhotoPrism) reports 2b/4b less predictable than 8b.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF",
+    "https://ollama.com/library/qwen3-vl/tags",
+    "https://docs.photoprism.app/user-guide/ai/ollama-models/"
+   ]
+  },
+  {
+   "id": "qwen2.5-vl-7b",
+   "name": "Qwen2.5-VL-7B-Instruct (current pipeline default)",
+   "family": "qwen2.5-vl",
+   "vram_gb": 8,
+   "recommended_for": "8GB",
+   "licence": "Apache-2.0",
+   "thinking": "none",
+   "disable_via_runtime": false,
+   "system_prompt": null,
+   "temperature": 0.2,
+   "sampling": {
+    "top_p": 0.8
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 300,
+   "max_edge": 1280,
+   "image_first": false,
+   "served": {
+    "llama-swap": "qwen2.5-vl",
+    "llama-server": "qwen2.5-vl-7b",
+    "ollama": "qwen2.5vl:7b",
+    "vllm": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "sglang": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "default": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "lmstudio": "qwen2.5-vl"
+   },
+   "hf_repo": "Qwen/Qwen2.5-VL-7B-Instruct",
+   "gguf": {
+    "repo": "ggml-org/Qwen2.5-VL-7B-Instruct-GGUF",
+    "file": "Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf",
+    "mmproj": "mmproj-Qwen2.5-VL-7B-Instruct-f16.gguf"
+   },
+   "notes": "28px per visual token (14px patch, 2x2 merge); HF default max_pixels 1280*28*28 ~= 1.0MP, so >1280px edges are downscaled anyway. Ollama 'qwen2.5vl' has no dash.",
+   "sources": [
+    "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+    "https://huggingface.co/ggml-org/Qwen2.5-VL-7B-Instruct-GGUF",
+    "https://ollama.com/library/qwen2.5vl/tags"
+   ]
+  },
+  {
+   "id": "gemma4-12b",
+   "name": "Gemma 4 12B Unified (it)",
+   "family": "gemma4",
+   "vram_gb": 12,
+   "recommended_for": "12-16GB",
+   "licence": "Apache-2.0",
+   "thinking": "optional",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.3,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 64
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 2048,
+   "max_edge": 1280,
+   "image_first": true,
+   "served": {
+    "llama-swap": "gemma4-12b",
+    "llama-server": "gemma4-12b",
+    "ollama": "gemma4:12b",
+    "vllm": "google/gemma-4-12B-it",
+    "sglang": "google/gemma-4-12B-it",
+    "default": "google/gemma-4-12B-it"
+   },
+   "hf_repo": "google/gemma-4-12B-it",
+   "gguf": {
+    "repo": "ggml-org/gemma-4-12B-it-GGUF",
+    "file": "gemma-4-12B-it-Q4_0.gguf",
+    "mmproj": "mmproj-gemma-4-12B-it-Q8_0.gguf"
+   },
+   "notes": "Off by default. With thinking off, every size except E2B/E4B still emits an EMPTY thought block (<|channel>thought ... <channel|>), so runtime parsers must strip it. Vendor sampling T1.0 top_p0.95 top_k64 (lowered for extractive captions; UNVERIFIED that low T is better). Image token budget 70/140/280/560/1120: use 1120 for OCR. How llama.cpp/Ollama expose that budget is UNVERIFIED (llama.cpp --image-min-tokens/--image-max-tokens assumed). Encoder-free 'Unified' arch (llama.cpp projector gemma4uv). Also takes audio input.",
+   "sources": [
+    "https://huggingface.co/google/gemma-4-12B-it",
+    "https://huggingface.co/ggml-org/gemma-4-12B-it-GGUF",
+    "https://ollama.com/library/gemma4"
+   ]
+  },
+  {
+   "id": "gemma4-e4b",
+   "name": "Gemma 4 E4B (it)",
+   "family": "gemma4",
+   "vram_gb": 8,
+   "recommended_for": "8GB",
+   "licence": "Apache-2.0",
+   "thinking": "optional",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.3,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 64
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 2048,
+   "max_edge": 1280,
+   "image_first": true,
+   "served": {
+    "llama-swap": "gemma4-e4b",
+    "llama-server": "gemma4-e4b",
+    "ollama": "gemma4:e4b",
+    "vllm": "google/gemma-4-E4B-it",
+    "sglang": "google/gemma-4-E4B-it",
+    "default": "google/gemma-4-E4B-it"
+   },
+   "hf_repo": "google/gemma-4-E4B-it",
+   "gguf": {
+    "repo": "ggml-org/gemma-4-E4B-it-GGUF",
+    "file": "gemma-4-E4B-it-Q4_0.gguf",
+    "mmproj": "mmproj-gemma-4-E4B-it-Q8_0.gguf"
+   },
+   "notes": "E2B/E4B emit NO empty thought block when thinking is off. gemma4:latest -> e4b in Ollama. 8B params incl. embeddings (4.5B effective).",
+   "sources": [
+    "https://huggingface.co/google/gemma-4-31B-it",
+    "https://huggingface.co/ggml-org/gemma-4-E4B-it-GGUF",
+    "https://ollama.com/library/gemma4"
+   ]
+  },
+  {
+   "id": "gemma4-26b-a4b",
+   "name": "Gemma 4 26B-A4B (it, MoE)",
+   "family": "gemma4",
+   "vram_gb": 16,
+   "recommended_for": "24GB (16GB tight)",
+   "licence": "Apache-2.0",
+   "thinking": "optional",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.3,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 64
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 2048,
+   "max_edge": 1280,
+   "image_first": true,
+   "served": {
+    "llama-swap": "gemma4-26b-a4b",
+    "llama-server": "gemma4-26b-a4b",
+    "ollama": "gemma4:26b",
+    "vllm": "google/gemma-4-26B-A4B-it",
+    "sglang": "google/gemma-4-26B-A4B-it",
+    "default": "google/gemma-4-26B-A4B-it"
+   },
+   "hf_repo": "google/gemma-4-26B-A4B-it",
+   "gguf": {
+    "repo": "ggml-org/gemma-4-26B-A4B-it-GGUF",
+    "file": "gemma-4-26B-A4B-it-Q4_0.gguf",
+    "mmproj": "mmproj-gemma-4-26B-A4B-it-Q8_0.gguf"
+   },
+   "notes": "Emits an empty thought block when thinking is off. The 31B sibling is ggml-org/gemma-4-31B-it-GGUF (17.99 + 0.81GB), Ollama gemma4:31b, OmniDocBench1.5 edit-dist 0.131 (vendor).",
+   "sources": [
+    "https://huggingface.co/google/gemma-4-31B-it",
+    "https://huggingface.co/ggml-org/gemma-4-26B-A4B-it-GGUF",
+    "https://ollama.com/library/gemma4"
+   ]
+  },
+  {
+   "id": "gemma3-12b",
+   "name": "Gemma 3 12B it (QAT)",
+   "family": "gemma3",
+   "vram_gb": 12,
+   "recommended_for": "12GB",
+   "licence": "Gemma Terms of Use (not OSI)",
+   "thinking": "none",
+   "disable_via_runtime": false,
+   "system_prompt": null,
+   "temperature": 0.3,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 64
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 300,
+   "max_edge": 1024,
+   "image_first": true,
+   "served": {
+    "llama-swap": "gemma3-12b",
+    "llama-server": "gemma3-12b",
+    "ollama": "gemma3:12b-it-qat",
+    "vllm": "google/gemma-3-12b-it",
+    "sglang": "google/gemma-3-12b-it",
+    "default": "google/gemma-3-12b-it",
+    "lmstudio": "gemma-3"
+   },
+   "hf_repo": "google/gemma-3-12b-it",
+   "gguf": {
+    "repo": "ggml-org/gemma-3-12b-it-qat-GGUF",
+    "file": "gemma-3-12b-it-qat-Q4_0.gguf",
+    "mmproj": "mmproj-model-f16-12B.gguf"
+   },
+   "notes": "SigLIP at fixed 896x896, 256 tokens/image. Pan&scan is not applied by llama.cpp (UNVERIFIED for Ollama), so small slide text degrades. Sending more than ~1024px buys nothing. Legacy option; prefer gemma4-12b.",
+   "sources": [
+    "https://huggingface.co/ggml-org/gemma-3-12b-it-qat-GGUF",
+    "https://ollama.com/library/gemma3/tags",
+    "https://github.com/ggml-org/llama.cpp/blob/master/docs/multimodal.md"
+   ]
+  },
+  {
+   "id": "ministral3-14b",
+   "name": "Ministral 3 14B Instruct 2512",
+   "family": "ministral3",
+   "vram_gb": 12,
+   "recommended_for": "12-16GB",
+   "licence": "Apache-2.0",
+   "thinking": "none",
+   "disable_via_runtime": false,
+   "system_prompt": null,
+   "temperature": 0.1,
+   "sampling": {
+    "top_p": 0.95
+   },
+   "max_tokens": 300,
+   "max_tokens_thinking": 300,
+   "max_edge": 1536,
+   "image_first": false,
+   "served": {
+    "llama-swap": "ministral3-14b",
+    "llama-server": "ministral3-14b",
+    "ollama": "ministral-3:14b",
+    "vllm": "mistralai/Ministral-3-14B-Instruct-2512",
+    "sglang": "mistralai/Ministral-3-14B-Instruct-2512",
+    "default": "mistralai/Ministral-3-14B-Instruct-2512"
+   },
+   "hf_repo": "mistralai/Ministral-3-14B-Instruct-2512",
+   "gguf": {
+    "repo": "mistralai/Ministral-3-14B-Instruct-2512-GGUF",
+    "file": "Ministral-3-14B-Instruct-2512-Q4_K_M.gguf",
+    "mmproj": "Ministral-3-14B-Instruct-2512-BF16-mmproj.gguf"
+   },
+   "notes": "Vendor: temperature below 0.1 for production. Vendor: keep image aspect near 1:1 and avoid very wide images; 16:9 slides are acceptable but crop letterboxing. Separate '-Reasoning-2512' repos think; do not use. 8B sibling: Q4_K_M 5.20GB, ollama ministral-3:8b (8GB tier). Ollama requires >=0.13.1. Max image size ~1540px is UNVERIFIED (Pixtral-style encoder).",
+   "sources": [
+    "https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512",
+    "https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512-GGUF",
+    "https://ollama.com/library/ministral-3"
+   ]
+  },
+  {
+   "id": "minicpm-v4.7-35b-a3b",
+   "name": "MiniCPM-V 4.7 35B-A3B",
+   "family": "minicpm-v",
+   "vram_gb": 24,
+   "recommended_for": "24GB",
+   "licence": "Apache-2.0",
+   "thinking": "optional",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.7,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 100,
+    "repetition_penalty": 1.03
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1344,
+   "image_first": true,
+   "served": {
+    "llama-swap": "minicpm-v4.7-35b-a3b",
+    "llama-server": "minicpm-v4.7-35b-a3b",
+    "ollama": "openbmb/minicpm-v4.7:35b-a3b",
+    "vllm": "openbmb/MiniCPM-V-4.7-35B-A3B",
+    "sglang": "openbmb/MiniCPM-V-4.7-35B-A3B",
+    "default": "openbmb/MiniCPM-V-4.7-35B-A3B"
+   },
+   "hf_repo": "openbmb/MiniCPM-V-4.7-35B-A3B",
+   "gguf": {
+    "repo": "openbmb/MiniCPM-V-4.7-35B-A3B-gguf",
+    "file": "MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf",
+    "mmproj": "mmproj-model-f16.gguf"
+   },
+   "notes": "Card examples pass enable_thinking=False for instruct mode; the default when omitted is UNVERIFIED (backbone is Qwen3.5/3.6, which defaults ON), so always send it. Released 2026-10-06/07. Default 16x visual-token compression; up to 9 slices (36 recommended for images in Transformers). Ollama namespace is openbmb/ (not library); 'latest' = 35b-a3b, 22GB. A 1B sibling also exists: openbmb/MiniCPM-V-4.7-1B-gguf, ollama openbmb/minicpm-v4.7:1b (1.8GB). Ollama library 'minicpm-v' is still the 2024 MiniCPM-V 2.6 (8b).",
+   "sources": [
+    "https://huggingface.co/openbmb/MiniCPM-V-4.7-35B-A3B",
+    "https://huggingface.co/openbmb/MiniCPM-V-4.7-35B-A3B-gguf",
+    "https://ollama.com/openbmb/minicpm-v4.7"
+   ]
+  },
+  {
+   "id": "glm4.6v-flash",
+   "name": "GLM-4.6V-Flash (9B)",
+   "family": "glm-v",
+   "vram_gb": 12,
+   "recommended_for": "12GB",
+   "licence": "MIT",
+   "thinking": "default-on",
+   "disable_via_runtime": true,
+   "system_prompt": null,
+   "temperature": 0.8,
+   "sampling": {
+    "top_p": 0.6
+   },
+   "max_tokens": 400,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1536,
+   "image_first": true,
+   "served": {
+    "llama-swap": "glm4.6v-flash",
+    "llama-server": "glm4.6v-flash",
+    "ollama": "hf.co/ggml-org/GLM-4.6V-Flash-GGUF:Q4_K_M",
+    "vllm": "zai-org/GLM-4.6V-Flash",
+    "sglang": "zai-org/GLM-4.6V-Flash",
+    "default": "zai-org/GLM-4.6V-Flash"
+   },
+   "hf_repo": "zai-org/GLM-4.6V-Flash",
+   "gguf": {
+    "repo": "ggml-org/GLM-4.6V-Flash-GGUF",
+    "file": "GLM-4.6V-Flash-Q4_K_M.gguf",
+    "mmproj": "mmproj-GLM-4.6V-Flash-Q8_0.gguf"
+   },
+   "notes": "enable_thinking=false via chat_template_kwargs is UNVERIFIED for 4.6V (it works on GLM-4.5/4.6 text templates). Answers may be wrapped in <|begin_of_box|>...<|end_of_box|> (GLM-4.1V/4.5V behaviour, UNVERIFIED for 4.6V), so strip those tokens. Vendor leaderboard decoding top_p0.6 T0.8. Card admits it 'may still overthink or repeat itself'. Strong at UI screenshots (screenshot->HTML). No official Ollama library tag; hf.co pull with a vision projector is UNVERIFIED.",
+   "sources": [
+    "https://huggingface.co/zai-org/GLM-4.6V-Flash",
+    "https://huggingface.co/ggml-org/GLM-4.6V-Flash-GGUF",
+    "https://lmstudio.ai/models/zai-org/glm-4.6v-flash"
+   ]
+  },
+  {
+   "id": "muse-glimmer-30b",
+   "name": "Muse Glimmer 30B (Meta)",
+   "family": "muse",
+   "vram_gb": 24,
+   "recommended_for": "24GB",
+   "licence": "Apache-2.0",
+   "thinking": "default-on",
+   "disable_via_runtime": false,
+   "system_prompt": "Reasoning strength: low",
+   "temperature": 1.0,
+   "sampling": {
+    "top_p": 0.95,
+    "top_k": 64
+   },
+   "max_tokens": 1536,
+   "max_tokens_thinking": 4096,
+   "max_edge": 1280,
+   "image_first": false,
+   "served": {
+    "llama-swap": "muse-glimmer-30b",
+    "llama-server": "muse-glimmer-30b",
+    "ollama": "muse-glimmer:30b",
+    "vllm": "meta-models/Muse-Glimmer-30B",
+    "sglang": "meta-models/Muse-Glimmer-30B",
+    "default": "meta-models/Muse-Glimmer-30B",
+    "lmstudio": "muse-glimmer"
+   },
+   "hf_repo": "meta-models/Muse-Glimmer-30B",
+   "gguf": {
+    "repo": "meta-models/Muse-Glimmer-30B-GGUF",
+    "file": "Muse-Glimmer-30B-KQuant-17GB-Q4_K_M.gguf",
+    "mmproj": "mmproj-Muse-Glimmer-30B-Q4_K_M.gguf"
+   },
+   "notes": "No documented 'off'. Levels are low/medium/high/xhigh, set in the SYSTEM prompt. Where the reasoning text lands (reasoning_content vs inline) is UNVERIFIED and runtime-dependent. Max 4096 visual tokens/image, ViT-G/14 1.8B perception encoder. Vendor numbers: CharXiv-R 78.8, OmniDocBench1.5 75.8. Already on this fleet's llama-swap (muse-glimmer-30b); confirm --mmproj before using for vision. Needs a system message, so the client must support optional system prompts per preset.",
+   "sources": [
+    "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+    "https://huggingface.co/meta-models/Muse-Glimmer-30B-GGUF",
+    "https://ollama.com/library/muse-glimmer"
+   ]
+  }
+ ]
+}

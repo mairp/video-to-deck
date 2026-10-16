@@ -20,7 +20,8 @@
 #   OCR_DEDUP            slide-grouping threshold, default 0.55; 0 = one block per frame.
 #                        Re-tune without re-OCR: `OCR_DEDUP=0.45 dedupe_slides.py <out_dir>`
 #   FORCE=1              redo every step even if its outputs already exist
-#   VISION=1|0           frame-vision pass on/off. Unset = on iff VISION_MODEL is set.
+#   VISION=1|0           frame-vision pass on/off. Unset = on iff VISION_MODEL or VISION_PRESET is set.
+#   VISION_PRESET / VISION_RUNTIME  local vision model + server presets (references/vision-local-models.md)
 #
 # Resumability: each step below skips itself when its outputs are already on disk, and the
 # OCR loop resumes at the frame it left off. A run that is interrupted part-way (agent
@@ -62,7 +63,7 @@ duration="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$video" 
 resolution="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$video" 2>/dev/null || echo '?')"
 has_audio="$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$video" 2>/dev/null | head -n1 || true)"
 
-if [[ -n "${VISION:-}" ]]; then vision_on="$VISION"; elif [[ -n "${VISION_MODEL:-}" ]]; then vision_on=1; else vision_on=0; fi
+if [[ -n "${VISION:-}" ]]; then vision_on="$VISION"; elif [[ -n "${VISION_MODEL:-}${VISION_PRESET:-}" ]]; then vision_on=1; else vision_on=0; fi
 
 # ---- 1. Audio -> transcript ------------------------------------------------
 if [[ -s "$out_dir/segments.tsv" && -z "${FORCE:-}" ]]; then
@@ -156,13 +157,13 @@ else
 fi
 
 # ---- 2b. OPTIONAL vision pass (Qwen-VL / any OpenAI-compatible vision model) ------
-# Off by default. Enabled when VISION=1 or VISION_MODEL is set. Describes what OCR can't
+# Off by default. Enabled when VISION=1 or VISION_MODEL/VISION_PRESET is set. Describes what OCR can't
 # (charts/diagrams/UI/gestures). Degrades to OCR-only if disabled or the endpoint fails.
 [[ -s "$out_dir/captions.tsv" && -z "${FORCE:-}" ]] || : > "$out_dir/captions.tsv"
 if [[ -s "$out_dir/captions.tsv" && -z "${FORCE:-}" ]]; then
   echo "process_video.sh: [$base] captions.tsv already present ($(wc -l < "$out_dir/captions.tsv") captions) — skipping vision pass" >&2
 elif [[ "$vision_on" == "1" ]]; then
-  echo "process_video.sh: [$base] vision captioning (model=${VISION_MODEL:-qwen2.5-vl}) — see caption_frames.py progress below" >&2
+  echo "process_video.sh: [$base] vision captioning ($("$PY" "$SCRIPT_DIR/vision_presets.py" label 2>/dev/null || echo "${VISION_MODEL:-qwen2.5-vl}")) — see caption_frames.py progress below" >&2
   if "$PY" "$SCRIPT_DIR/caption_frames.py" "$out_dir/kept_frames.tsv" "$out_dir"; then
     :
   else
@@ -208,7 +209,7 @@ echo "process_video.sh: [$base] writing evidence.md" >&2
 
   # Only emitted when the optional vision pass ran and produced captions.
   if [[ -s "$out_dir/captions.tsv" ]]; then
-    printf '## Visual descriptions (vision model: %s)\n\n' "${VISION_MODEL:-qwen2.5-vl}"
+    printf '## Visual descriptions (vision model: %s)\n\n' "$("$PY" "$SCRIPT_DIR/vision_presets.py" label 2>/dev/null || echo "${VISION_MODEL:-qwen2.5-vl}")"
     while IFS=$'\t' read -r ts rel cap; do
       [[ -z "$cap" ]] && continue
       printf '### [%s] %s\n%s\n\n' "$(hhmmss "$ts")" "$rel" "$cap"

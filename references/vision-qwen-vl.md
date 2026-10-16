@@ -1,5 +1,9 @@
 # Optional vision pass — captioning keyframes with a VLM
 
+> Other local models (Qwen3-VL, Qwen3.5/3.6/3.8, Gemma 4, Ministral 3, MiniCPM-V 4.7, GLM-4.6V,
+> ...) and runtimes (Ollama, vLLM, LM Studio, SGLang, MLX-VLM, ...) have one-flag presets: see
+> [vision-local-models.md](vision-local-models.md). This page covers serving Qwen2.5-VL on llama.cpp.
+
 The core path (transcript + OCR) needs no vision model. The **optional** vision pass adds a
 "## Visual descriptions" section to `evidence.md` by asking a vision-language model to describe
 each kept keyframe — useful for charts, diagrams, UI, and gestures that OCR misses.
